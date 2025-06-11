@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Camera Web App</title>
+  <style>
+    video, canvas {
+      width: 100%;
+      max-width: 500px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Camera Access</h2>
+  <video id="video" autoplay></video>
+  <button onclick="capturePhoto()">Capture</button>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <br>
+  <button onclick="uploadPhoto()">Upload</button>
+
+  <script>
+    let imageData;
+
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
+        document.getElementById('video').srcObject = stream;
+      })
+      .catch(err => {
+        alert("Camera access error: " + err);
+      });
+
+    function capturePhoto() {
+      const video = document.getElementById('video');
+      const canvas = document.getElementById('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      imageData = canvas.toDataURL("image/png");
+      alert("Photo captured");
+    }
+
+    function uploadPhoto() {
+      if (!imageData) {
+        alert("Please capture a photo first.");
+        return;
+      }
+
+      fetch("https://your-backend-url.onrender.com/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ image: imageData })
+      })
+      .then(response => response.json())
+      .then(data => {
+        alert("Upload successful: " + data.message);
+      })
+      .catch(error => {
+        alert("Upload failed: " + error);
+      });
+    }
+  </script>
+</body>
+</html>
